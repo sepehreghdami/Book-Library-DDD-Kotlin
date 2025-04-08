@@ -5,7 +5,11 @@ import domain.repository.BookRepository
 import domain.repository.MemberRepository
 import domain.repository.BorrowingRepository
 import domain.aggregate.borrowing.entity.Borrowing
+import domain.aggregate.borrowing.valueobject.SpecifiedReturnTime
 import java.time.Instant
+import domain.aggregate.borrowing.valueobject.BorrowDate
+import domain.aggregate.borrowing.valueobject.BorrowingId
+import domain.aggregate.member.valueobject.MemberId
 import java.util.UUID
 
 class BorrowingService(
@@ -15,9 +19,9 @@ class BorrowingService(
 ) {
 
     fun borrowBook(
-        memberId: String,
+        memberId: MemberId,
         isbn: ISBN,
-        specifiedReturnTime: Instant
+        specifiedReturnTime: SpecifiedReturnTime
     ): Borrowing {
 
         val book = bookRepository.get(isbn)
@@ -27,7 +31,7 @@ class BorrowingService(
             ?: throw IllegalArgumentException("Member with ID $memberId does not exist")
 
         val activeMemberBorrowings = borrowingRepository.findByMemberId(memberId)
-        if (activeMemberBorrowings.size >= member.maxBorrowsAllowed) {
+        if (activeMemberBorrowings.size >= member.maxBorrowsAllowed.value) {
             throw IllegalStateException("Member has reached the borrow limit")
         }
 
@@ -36,13 +40,13 @@ class BorrowingService(
         }
 
         val activeBookBorrowings = borrowingRepository.findByIsbn(isbn)
-        val availableCount = book.stock - activeBookBorrowings.size
+        val availableCount = book.stock.value - activeBookBorrowings.size
         if (availableCount <= 0) {
             throw IllegalStateException("No copies of book '${book.title}' available")
         }
 
 
-        val borrowDate = Instant.now()
+        val borrowDate = BorrowDate(Instant.now())
         val borrowing = Borrowing.makeNew(
             memberId = memberId,
             isbn = isbn,
@@ -56,7 +60,7 @@ class BorrowingService(
     }
 
 
-    fun returnBook(borrowingId: String) {
+    fun returnBook(borrowingId: BorrowingId) {
         val borrowing = borrowingRepository.get(borrowingId) ?: throw IllegalStateException("No active borrowing found for this borrowing id")
         borrowing.returnBook()
         borrowingRepository.save(borrowing)

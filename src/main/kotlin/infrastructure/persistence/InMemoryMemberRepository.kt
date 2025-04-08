@@ -2,10 +2,12 @@ package infrastructure.persistence
 
 import domain.repository.MemberRepository
 import domain.aggregate.member.entity.Member
-class InMemoryMemberRepository : MemberRepository {
-    private val members = mutableMapOf<String, Member>()
+import domain.aggregate.member.valueobject.MemberId
 
-    override fun get(memberId: String): Member? {
+class InMemoryMemberRepository : MemberRepository {
+    private val members = mutableMapOf<MemberId, Member>()
+
+    override fun get(memberId: MemberId): Member? {
         return members[memberId]
     }
 
