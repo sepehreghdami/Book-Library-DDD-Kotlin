@@ -1,4 +1,5 @@
 package domain.service
+import LateFee
 import domain.aggregate.book.valueobject.ISBN
 import domain.repository.BookRepository
 import domain.repository.MemberRepository
@@ -25,7 +26,7 @@ class BorrowingService(
         val member = memberRepository.get(memberId)
             ?: throw IllegalArgumentException("Member with ID $memberId does not exist")
 
-        val activeMemberBorrowings = borrowingRepository.getById(memberId)
+        val activeMemberBorrowings = borrowingRepository.findByMemberId(memberId)
         if (activeMemberBorrowings.size >= member.maxBorrowsAllowed) {
             throw IllegalStateException("Member has reached the borrow limit")
         }
@@ -34,21 +35,18 @@ class BorrowingService(
             throw IllegalStateException("Member has already borrowed a copy of this book and has not returned it")
         }
 
-        val activeBookBorrowings = borrowingRepository.getByIsbn(isbn)
+        val activeBookBorrowings = borrowingRepository.findByIsbn(isbn)
         val availableCount = book.stock - activeBookBorrowings.size
         if (availableCount <= 0) {
             throw IllegalStateException("No copies of book '${book.title}' available")
         }
 
-        val borrowId = UUID.randomUUID().toString()
 
         val borrowDate = Instant.now()
-        val borrowing = Borrowing(
-            id = borrowId,
+        val borrowing = Borrowing.makeNew(
             memberId = memberId,
             isbn = isbn,
             specifiedReturnTime = specifiedReturnTime,
-            actualReturnTime = null,
             borrowDate = borrowDate
         )
 
@@ -58,17 +56,11 @@ class BorrowingService(
     }
 
 
-    fun returnBook(memberId: String, isbn: ISBN) {
-        val borrowings = borrowingRepository.getById(memberId)
-            .filter { it.isbn == isbn && it.actualReturnTime == null }
-
-        val borrowing = borrowings.firstOrNull()
-            ?: throw IllegalStateException("No active borrowing found for member $memberId and ISBN $isbn")
-
-        borrowing.actualReturnTime = Instant.now()
+    fun returnBook(borrowingId: String) {
+        val borrowing = borrowingRepository.get(borrowingId) ?: throw IllegalStateException("No active borrowing found for this borrowing id")
+        borrowing.returnBook()
         borrowingRepository.save(borrowing)
     }
-
     }
 
 

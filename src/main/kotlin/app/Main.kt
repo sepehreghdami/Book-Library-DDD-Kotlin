@@ -21,7 +21,6 @@ fun main() {
         name = "Sepehr",
         maxBorrowsAllowed = 5)
     memberRepository.save(member1)
-    memberRepository.save(member1)
 
     memberRepository.getAll().forEach { println("👤 Member: ID=${it.id}, Name='${it.name}', MaxBorrows=${it.maxBorrowsAllowed}") }
 
@@ -77,15 +76,24 @@ fun main() {
 
     val borrowingService = BorrowingService( bookRepository, memberRepository, borrowingRepository)
     val tenDaysLater = Instant.now().plus(Duration.ofDays(10))
+    val tenSecondsLater = Instant.now().plus(Duration.ofSeconds(10))
+
     borrowingService.borrowBook(memberId = "member1",
         isbn = isbn3,
-        specifiedReturnTime = tenDaysLater
+        specifiedReturnTime = tenSecondsLater
         )
     borrowingService.borrowBook(memberId = "member1",
-        isbn = isbn3,
+        isbn = isbn2,
         specifiedReturnTime = tenDaysLater
     )
+    borrowingRepository.getAll().forEach { println("🔄 Borrowing: ID=${it.id}, MemberID=${it.memberId}, ISBN=${it.isbn}, SpecifiedReturn=${it.specifiedReturnTime}, ActualReturn=${it.actualReturnTime}, LateFee=${it.lateFee}")
+    borrowingService.returnBook(borrowingId = "1e22ceb6-e4d8-46fd-8cd4-73431ae2a0ee")
+//
+//    borrowingRepository.getAll().forEach { println("🔄 Borrowing: ID=${it.id}, MemberID=${it.memberId}, ISBN=${it.isbn}, SpecifiedReturn=${it.specifiedReturnTime}, ActualReturn=${it.actualReturnTime}, LateFee=${it.lateFee}")
 
-    borrowingRepository.getAll().forEach { println("🔄 Borrowing: ID=${it.id}, MemberID=${it.memberId}, ISBN=${it.isbn}, SpecifiedReturn=${it.specifiedReturnTime}, ActualReturn=${it.actualReturnTime}") }
+
+        }
+
+
 }
 
