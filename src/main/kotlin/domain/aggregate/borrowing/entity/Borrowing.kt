@@ -2,6 +2,8 @@ package domain.aggregate.borrowing.entity
 
 import LateFee
 import domain.aggregate.book.valueobject.ISBN
+import domain.aggregate.borrowing.valueobject.*
+import domain.aggregate.member.valueobject.MemberId
 
 
 import java.time.Instant
@@ -9,26 +11,26 @@ import java.util.UUID
 
 class Borrowing private constructor() {
 
-    lateinit var id: String
+    lateinit var id: BorrowingId
         private set
-    lateinit var createdOn: Instant
+    lateinit var createdOn: CreatedOn
         private set
-    lateinit var memberId: String
+    lateinit var memberId: MemberId
         private set
     lateinit var isbn: ISBN
         private set
-    lateinit var specifiedReturnTime: Instant
+    lateinit var specifiedReturnTime: SpecifiedReturnTime
         private set
-    lateinit var borrowDate: Instant
+    lateinit var borrowDate: BorrowDate
         private set
-    var actualReturnTime: Instant? = null
+    var actualReturnTime: ActualReturnTime? = null
         private set
     var lateFee: LateFee? = null
         private set
 
     fun returnBook() {
 
-        actualReturnTime = Instant.now()
+        actualReturnTime = ActualReturnTime(Instant.now())
         val latePerDayRate: Double = 2.0
         val fee = calculateLateFee(latePerDayRate)
         if (fee > 0) {
@@ -38,24 +40,25 @@ class Borrowing private constructor() {
 
     companion object {
         fun makeNew(
-            memberId: String,
+            memberId: MemberId,
             isbn: ISBN,
-            specifiedReturnTime: Instant,
-            borrowDate: Instant,
+            specifiedReturnTime: SpecifiedReturnTime,
+            borrowDate: BorrowDate,
         ): Borrowing {
             return Borrowing().apply {
-                this.id = UUID.randomUUID().toString()
+                this.id = BorrowingId(UUID.randomUUID().toString())
                 this.memberId = memberId
                 this.isbn = isbn
                 this.specifiedReturnTime = specifiedReturnTime
                 this.borrowDate = borrowDate
-                createdOn = Instant.now()
+                createdOn = CreatedOn(Instant.now())
             }
         }
     }
 
     private fun calculateLateFee(perDayRate: Double): Double {
-        val daysLate = java.time.Duration.between(specifiedReturnTime, actualReturnTime).toDays()
+        val returnTime = actualReturnTime ?: return 0.0
+        val daysLate = java.time.Duration.between(specifiedReturnTime.value, returnTime.value).toDays()
         return if (daysLate > 0) daysLate * perDayRate else 0.0
     }
 }

@@ -2,6 +2,8 @@ package infrastructure.persistence
 import domain.repository.BorrowingRepository
 import domain.aggregate.borrowing.entity.Borrowing
 import domain.aggregate.book.valueobject.ISBN
+import domain.aggregate.borrowing.valueobject.BorrowingId
+import domain.aggregate.member.valueobject.MemberId
 
 
 class InMemoryBorrowingRepository : BorrowingRepository {
@@ -9,7 +11,7 @@ class InMemoryBorrowingRepository : BorrowingRepository {
 
 
 
-    override fun findByMemberId(memberId: String): List<Borrowing> {
+    override fun findByMemberId(memberId: MemberId): List<Borrowing> {
         return borrowings.filter { it.memberId == memberId && it.actualReturnTime == null }
     }
 
@@ -17,7 +19,7 @@ class InMemoryBorrowingRepository : BorrowingRepository {
         return borrowings.filter { it.isbn == isbn && it.actualReturnTime == null }
     }
 
-    override fun get(borrowingId: String): Borrowing? {
+    override fun get(borrowingId: BorrowingId): Borrowing? {
         return borrowings.find { it.id == borrowingId }
     }
 

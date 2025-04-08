@@ -1,12 +1,20 @@
 package app
 
+
 import domain.aggregate.book.entity.Book
 import domain.aggregate.book.valueobject.ISBN
+import domain.aggregate.book.valueobject.Title
 import domain.aggregate.member.entity.Member
+import domain.aggregate.book.valueobject.Author
+import domain.aggregate.book.valueobject.Stock
+import domain.aggregate.borrowing.valueobject.SpecifiedReturnTime
+import domain.aggregate.member.valueobject.MemberId
+import domain.aggregate.member.valueobject.MemberName
 import infrastructure.persistence.InMemoryMemberRepository
 import infrastructure.persistence.InMemoryBookRepository
 import infrastructure.persistence.InMemoryBorrowingRepository
 import domain.service.BorrowingService
+import domain.aggregate.member.valueobject.MaxBorrowsAllowed
 
 import java.time.Instant
 import java.time.Duration
@@ -17,9 +25,10 @@ fun main() {
     val bookRepository = InMemoryBookRepository()
     val borrowingRepository = InMemoryBorrowingRepository()
 
-    val member1 = Member(id = "member1",
-        name = "Sepehr",
-        maxBorrowsAllowed = 5)
+    val member1 = Member.makeNew(
+        name = MemberName("Sepehr"),
+        maxBorrowsAllowed = MaxBorrowsAllowed(3)
+    )
     memberRepository.save(member1)
 
     memberRepository.getAll().forEach { println("👤 Member: ID=${it.id}, Name='${it.name}', MaxBorrows=${it.maxBorrowsAllowed}") }
@@ -27,73 +36,36 @@ fun main() {
 
     val isbn1 = ISBN("1111111111111")
     val book1 = Book(isbn = isbn1,
-        title = "Implementation of Domain Driven Design",
-        author = "Vernon",
-        stock = 5)
+        title = Title("black swan"),
+        author = Author("N.N.T"),
+        stock = Stock(5))
     bookRepository.save(book1)
-    val isbn2 = ISBN("2222222222222")
-    val book2 = Book(
-        isbn = isbn2,
-        title = "Clean Code: A Handbook of Agile Software Craftsmanship",
-        author = "Robert C. Martin",
-        stock = 8
-    )
-    bookRepository.save(book2)
-    val isbn3 = ISBN("3333333333333")
-    val book3 = Book(
-        isbn = isbn3,
-        title = "Design Patterns: Elements of Reusable Object-Oriented Software",
-        author = "Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides",
-        stock = 3
-    )
-    bookRepository.save(book3)
-    val isbn4 = ISBN("4444444444444")
-    val book4 = Book(
-        isbn = isbn4,
-        title = "The Pragmatic Programmer",
-        author = "Andrew Hunt, David Thomas",
-        stock = 6
-    )
-    bookRepository.save(book4)
-    val isbn5 = ISBN("5555555555555")
-    val book5 = Book(
-        isbn = isbn5,
-        title = "Refactoring: Improving the Design of Existing Code",
-        author = "Martin Fowler",
-        stock = 4
-    )
-    bookRepository.save(book5)
-    val isbn6 = ISBN("6666666666666")
-    val book6 = Book(
-        isbn = isbn6,
-        title = "Head First Design Patterns",
-        author = "Eric Freeman, Elisabeth Robson",
-        stock = 7
-    )
-    bookRepository.save(book6)
+
 
     bookRepository.getAll().forEach { println("📘 Book: ISBN=${it.isbn}, Title='${it.title}', Author='${it.author}', Stock=${it.stock}") }
 
     val borrowingService = BorrowingService( bookRepository, memberRepository, borrowingRepository)
     val tenDaysLater = Instant.now().plus(Duration.ofDays(10))
-    val tenSecondsLater = Instant.now().plus(Duration.ofSeconds(10))
+//    val tenSecondsLater = Instant.now().plus(Duration.ofSeconds(10))
 
-    borrowingService.borrowBook(memberId = "member1",
-        isbn = isbn3,
-        specifiedReturnTime = tenSecondsLater
+    val borrowing1 = borrowingService.borrowBook(memberId = member1.id,
+        isbn = isbn1,
+        specifiedReturnTime = SpecifiedReturnTime(tenDaysLater)
         )
-    borrowingService.borrowBook(memberId = "member1",
-        isbn = isbn2,
-        specifiedReturnTime = tenDaysLater
-    )
-    borrowingRepository.getAll().forEach { println("🔄 Borrowing: ID=${it.id}, MemberID=${it.memberId}, ISBN=${it.isbn}, SpecifiedReturn=${it.specifiedReturnTime}, ActualReturn=${it.actualReturnTime}, LateFee=${it.lateFee}")
-    borrowingService.returnBook(borrowingId = "1e22ceb6-e4d8-46fd-8cd4-73431ae2a0ee")
-//
-//    borrowingRepository.getAll().forEach { println("🔄 Borrowing: ID=${it.id}, MemberID=${it.memberId}, ISBN=${it.isbn}, SpecifiedReturn=${it.specifiedReturnTime}, ActualReturn=${it.actualReturnTime}, LateFee=${it.lateFee}")
+    borrowingRepository.getAll().forEach { println("🔄 Borrowing: ID=${it.id}, MemberID=${it.memberId}, ISBN=${it.isbn}, SpecifiedReturn=${it.specifiedReturnTime}, ActualReturn=${it.actualReturnTime}, LateFee=${it.lateFee}")}
 
+//    borrowingService.borrowBook(memberId = "member1",
+//        isbn = isbn2,
+//        specifiedReturnTime = tenDaysLater
+//    )
+    borrowingService.returnBook(borrowingId = borrowing1.id)
+    borrowingRepository.getAll().forEach { println("🔄 Borrowing: ID=${it.id}, MemberID=${it.memberId}, ISBN=${it.isbn}, SpecifiedReturn=${it.specifiedReturnTime}, ActualReturn=${it.actualReturnTime}, LateFee=${it.lateFee}")}
+
+//    borrowingRepository.getAll().forEach { println("🔄 Borrowing: ID=${it.id}, MemberID=${it.memberId}, ISBN=${it.isbn}, SpecifiedReturn=${it.specifiedReturnTime}, ActualReturn=${it.actualReturnTime}, LateFee=${it.lateFee}")
+//    borrowingService.returnBook(borrowingId = "1e22ceb6-e4d8-46fd-8cd4-73431ae2a0ee")
 
         }
 
 
-}
+
 
