@@ -1,4 +1,4 @@
-package infrastructure.ktor.routes
+package infrastructure.ktor.v1.routes
 import domain.aggregate.book.valueobject.ISBN
 import domain.aggregate.member.valueobject.MemberId
 import domain.aggregate.borrowing.valueobject.*
@@ -6,7 +6,7 @@ import domain.service.BorrowingService
 import domain.repository.BorrowingRepository
 import domain.repository.BookRepository
 import domain.repository.MemberRepository
-import infrastructure.ktor.dto.BorrowingHttpResponse
+import infrastructure.ktor.v1.httpresponses.BorrowingHttpResponse
 import java.time.Instant
 import java.time.Duration
 import io.ktor.server.application.*
@@ -35,7 +35,7 @@ fun Route.borrowingRoutes(borrowingRepository: BorrowingRepository, memberReposi
                 )
             })
         }
-        post("/borrowBook"){
+        post{
             val borrowing = call.receive<BorrowingHttpResponse>()
             val borrowingService = BorrowingService( bookRepository, memberRepository, borrowingRepository)
             val tenDaysLater = Instant.now().plus(Duration.ofDays(10))
@@ -47,8 +47,7 @@ fun Route.borrowingRoutes(borrowingRepository: BorrowingRepository, memberReposi
             call.respond(HttpStatusCode.Created,borrowing)
 
         }
-//        post("/{borrowingId}/return") {
-        post("/returnBook/{borrowingId}") {
+        post("/{borrowingId}/return") {
             val borrowingIdParam = call.parameters["borrowingId"]
             if (borrowingIdParam.isNullOrBlank()) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "borrowing id must be provided"))

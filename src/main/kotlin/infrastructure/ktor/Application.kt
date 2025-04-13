@@ -5,7 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.routing.*
-import infrastructure.ktor.routes.*
+import infrastructure.ktor.v1.routes.*
 import domain.repository.*
 
 import domain.repository.BorrowingRepository
@@ -26,8 +26,11 @@ fun Application.module() {
         get("/") {
             call.respondText("Hello, world!")
         }
-        bookRoutes(bookRepository)
-        memberRoutes(memberRepository)
-        borrowingRoutes(borrowingRepository, memberRepository, bookRepository)
+        route("/v1/library") {
+            bookRoutes(bookRepository)
+            memberRoutes(memberRepository)
+            borrowingRoutes(borrowingRepository, memberRepository, bookRepository)
+        }
     }
+
 }

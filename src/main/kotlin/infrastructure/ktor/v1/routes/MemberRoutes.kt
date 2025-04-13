@@ -1,11 +1,11 @@
-package infrastructure.ktor.routes
+package infrastructure.ktor.v1.routes
 
 
 import domain.aggregate.member.entity.Member
 import domain.aggregate.member.valueobject.MaxBorrowsAllowed
 import domain.aggregate.member.valueobject.MemberName
 import domain.repository.MemberRepository
-import infrastructure.ktor.dto.MemberHttpResponse
+import infrastructure.ktor.v1.httpresponses.MemberHttpResponse
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.request.*
@@ -15,7 +15,7 @@ import io.ktor.http.*
 
 fun Route.memberRoutes(memberRepository: MemberRepository) {
     route("/members"){
-        get("/getAllMembers") {
+        get("/all") {
             val members = memberRepository.getAll()
 
             call.respond(members.map { member ->
@@ -27,7 +27,7 @@ fun Route.memberRoutes(memberRepository: MemberRepository) {
                 )
             })
         }
-        post("/addMember") {
+        post {
             val member = call.receive<MemberHttpResponse>()
             memberRepository.save(
                 Member.makeNew(name = MemberName(member.name),
