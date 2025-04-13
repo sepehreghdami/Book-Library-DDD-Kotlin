@@ -1,14 +1,12 @@
 package infrastructure.ktor.routes
 import domain.aggregate.book.valueobject.ISBN
-import domain.aggregate.borrowing.entity.Borrowing
 import domain.aggregate.member.valueobject.MemberId
 import domain.aggregate.borrowing.valueobject.*
 import domain.service.BorrowingService
 import domain.repository.BorrowingRepository
 import domain.repository.BookRepository
 import domain.repository.MemberRepository
-import infrastructure.ktor.dto.BorrowingDto
-import infrastructure.ktor.dto.MemberDto
+import infrastructure.ktor.dto.BorrowingHttpResponse
 import java.time.Instant
 import java.time.Duration
 import io.ktor.server.application.*
@@ -26,7 +24,7 @@ fun Route.borrowingRoutes(borrowingRepository: BorrowingRepository, memberReposi
             val borrowings = borrowingRepository.getAll()
 
             call.respond(borrowings.map { borrowing ->
-                BorrowingDto(
+                BorrowingHttpResponse(
                     borrowingId = borrowing.id.value,
                     isbn = borrowing.isbn.value,
                     memberId = borrowing.memberId.value,
@@ -38,7 +36,7 @@ fun Route.borrowingRoutes(borrowingRepository: BorrowingRepository, memberReposi
             })
         }
         post("/borrowBook"){
-            val borrowing = call.receive<BorrowingDto>()
+            val borrowing = call.receive<BorrowingHttpResponse>()
             val borrowingService = BorrowingService( bookRepository, memberRepository, borrowingRepository)
             val tenDaysLater = Instant.now().plus(Duration.ofDays(10))
 
