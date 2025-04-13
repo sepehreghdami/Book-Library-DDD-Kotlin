@@ -32,6 +32,6 @@ class InMemoryBorrowingRepository : BorrowingRepository {
     fun preload(vararg borrowingList: Borrowing) {
         borrowingList.forEach { save(it) }
     }
-    fun getAll(): List<Borrowing> = borrowings.toList()
+    override fun getAll(): List<Borrowing> = borrowings.toList()
 
 }

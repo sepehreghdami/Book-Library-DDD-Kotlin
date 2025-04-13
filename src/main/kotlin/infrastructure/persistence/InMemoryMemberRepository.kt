@@ -11,12 +11,12 @@ class InMemoryMemberRepository : MemberRepository {
         return members[memberId]
     }
 
-    fun save(member: Member) {
+    override fun save(member: Member) {
         members[member.id] = member
     }
 
     fun preload(vararg memberList: Member) {
         memberList.forEach { save(it) }
     }
-    fun getAll(): List<Member> = members.values.toList()
+    override fun getAll(): List<Member> = members.values.toList()
 }

@@ -10,4 +10,5 @@ interface BorrowingRepository {
     fun findByMemberId(memberId: MemberId): List<Borrowing>
     fun findByIsbn(isbn: ISBN): List<Borrowing>
     fun save(borrowing: Borrowing)
+    fun getAll(): List<Borrowing>
 }

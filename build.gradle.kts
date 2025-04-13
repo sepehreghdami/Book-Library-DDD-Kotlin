@@ -1,5 +1,6 @@
 plugins {
-    kotlin("jvm") version "1.8.0"
+    kotlin("jvm") version "1.9.0"
+    kotlin("plugin.serialization") version "1.9.0"
     application
 }
 
@@ -10,15 +11,23 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
+    // Ktor dependencies
+    implementation("io.ktor:ktor-server-core:2.3.0")
+    implementation("io.ktor:ktor-server-netty:2.3.0")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.0")
+    implementation("io.ktor:ktor-server-content-negotiation:2.3.0")
+    implementation("ch.qos.logback:logback-classic:1.4.11")
+
+
 }
 
-//application {
-//    mainClass.set("com.example.library.MainKt")
-//}
+application {
+    // Update the main class to match your entry point package and file.
+    mainClass.set("app.MainKt")
+}
 
-// ✅ JVM Toolchain block to ensure Kotlin + Java match
 kotlin {
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(17)) // or 11 or 8
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }

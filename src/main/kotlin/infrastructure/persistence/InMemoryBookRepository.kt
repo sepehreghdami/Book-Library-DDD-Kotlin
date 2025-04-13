@@ -10,13 +10,13 @@ class InMemoryBookRepository : BookRepository {
         return books[isbn]
     }
 
-    fun save(book: Book) {
+    override fun save(book: Book) {
         books[book.isbn] = book
     }
 
     fun preload(vararg bookList: Book) {
         bookList.forEach { save(it) }
     }
-    fun getAll(): List<Book> = books.values.toList()
+    override fun getAll(): List<Book> = books.values.toList()
 
 }
