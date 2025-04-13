@@ -1,4 +1,4 @@
-package infrastructure.ktor.dto
+package infrastructure.ktor.v1.httpresponses
 import kotlinx.serialization.Serializable
 
 

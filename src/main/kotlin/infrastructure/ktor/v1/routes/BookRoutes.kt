@@ -1,4 +1,4 @@
-package infrastructure.ktor.routes
+package infrastructure.ktor.v1.routes
 
 
 import io.ktor.server.application.*
@@ -6,7 +6,7 @@ import io.ktor.server.response.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.http.*
-import infrastructure.ktor.dto.BookHttpResponse
+import infrastructure.ktor.v1.httpresponses.BookHttpResponse
 import domain.repository.BookRepository
 import domain.aggregate.book.valueobject.ISBN
 import domain.aggregate.book.valueobject.Stock
