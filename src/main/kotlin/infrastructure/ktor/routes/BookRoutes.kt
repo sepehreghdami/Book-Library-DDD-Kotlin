@@ -6,13 +6,14 @@ import io.ktor.server.response.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.http.*
-import infrastructure.ktor.dto.BookDto
+import infrastructure.ktor.dto.BookHttpResponse
 import domain.repository.BookRepository
 import domain.aggregate.book.valueobject.ISBN
 import domain.aggregate.book.valueobject.Stock
 import domain.aggregate.book.valueobject.Title
 import domain.aggregate.book.entity.Book
 import domain.aggregate.book.valueobject.Author
+
 
 fun Route.bookRoutes(bookRepository: BookRepository) {
     route("/books") {
@@ -22,7 +23,7 @@ fun Route.bookRoutes(bookRepository: BookRepository) {
             val books = bookRepository.getAll()
 
             call.respond(books.map { book ->
-                BookDto(
+                BookHttpResponse(
                     isbn = book.isbn.value,
                     title = book.title.value,
                     author = book.author.value,
@@ -46,7 +47,7 @@ fun Route.bookRoutes(bookRepository: BookRepository) {
                 call.respond(HttpStatusCode.NotFound, mapOf("error" to "Book not found"))
             } else {
             call.respond(
-                BookDto(
+                BookHttpResponse(
                     isbn = book.isbn.value,
                     title = book.title.value,
                     author = book.author.value,
@@ -57,7 +58,7 @@ fun Route.bookRoutes(bookRepository: BookRepository) {
 
         post {
             try {
-                val book = call.receive<BookDto>()
+                val book = call.receive<BookHttpResponse>()
                 bookRepository.save(
                     Book(
                         isbn = ISBN(book.isbn),

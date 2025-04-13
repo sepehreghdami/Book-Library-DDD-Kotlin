@@ -1,2 +1,12 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Kotlin/Gradle
 .gradle/
 build/
+out/
+
+# OS-specific (Windows + macOS)
+.DS_Store
+Thumbs.db
