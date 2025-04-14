@@ -1,5 +1,6 @@
-package infrastructure.ktor.v1.httpresponses
+package domain.repository.valueobject
 import kotlinx.serialization.Serializable
+
 
 @Serializable
 data class Page<T>(val page: Int,

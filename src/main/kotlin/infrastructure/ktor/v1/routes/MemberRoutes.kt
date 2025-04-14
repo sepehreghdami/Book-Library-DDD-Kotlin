@@ -15,8 +15,13 @@ import io.ktor.http.*
 
 fun Route.memberRoutes(memberRepository: MemberRepository) {
     route("/members"){
-        get("/all") {
+        get {
+            val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+            val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
+
+
             val members = memberRepository.getAll()
+            val totalElements = members.size
 
             call.respond(members.map { member ->
                 MemberHttpResponse(
