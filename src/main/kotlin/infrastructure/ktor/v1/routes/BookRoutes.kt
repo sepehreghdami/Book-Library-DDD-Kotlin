@@ -1,5 +1,6 @@
 package infrastructure.ktor.v1.routes
 
+import kotlin.math.ceil
 
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -7,6 +8,7 @@ import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.http.*
 import infrastructure.ktor.v1.httpresponses.BookHttpResponse
+import infrastructure.ktor.v1.httpresponses.Page
 import domain.repository.BookRepository
 import domain.aggregate.book.valueobject.ISBN
 import domain.aggregate.book.valueobject.Stock
@@ -17,19 +19,39 @@ import domain.aggregate.book.valueobject.Author
 
 fun Route.bookRoutes(bookRepository: BookRepository) {
     route("/books") {
-        get("/all") {
+        get {
+
+            val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+            val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
+
 
 
             val books = bookRepository.getAll()
+            val totalElements = books.size
+            val totalPages = ceil(totalElements / size.toFloat()).toInt()
 
-            call.respond(books.map { book ->
+            val fromIndex = (page - 1) * size
+            val toIndex = minOf(fromIndex + size, totalElements)
+
+            val paginatedBooks = books.subList(fromIndex,toIndex).map {book ->
                 BookHttpResponse(
                     isbn = book.isbn.value,
                     title = book.title.value,
                     author = book.author.value,
                     stock = book.stock.value
                 )
-            })
+            }
+
+            call.respond(
+                Page(
+                    page = page,
+                    pageSize = size,
+                    elements = paginatedBooks,
+                    totalElements = totalElements,
+                    totalPages = totalPages
+                )
+            )
+//            call.respondText("$paginatedBooks")
         }
         get("/{isbn}") {
             val isbnParam = call.parameters["isbn"]
