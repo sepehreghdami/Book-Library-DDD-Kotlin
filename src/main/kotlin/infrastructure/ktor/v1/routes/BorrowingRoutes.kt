@@ -6,7 +6,10 @@ import domain.service.BorrowingService
 import domain.repository.BorrowingRepository
 import domain.repository.BookRepository
 import domain.repository.MemberRepository
+import domain.repository.valueobject.Page
+import domain.repository.valueobject.Pageable
 import infrastructure.ktor.v1.httpresponses.BorrowingHttpResponse
+import infrastructure.ktor.v1.httpresponses.MemberHttpResponse
 import java.time.Instant
 import java.time.Duration
 import io.ktor.server.application.*
@@ -20,21 +23,37 @@ import io.ktor.http.*
 
 fun Route.borrowingRoutes(borrowingRepository: BorrowingRepository, memberRepository: MemberRepository, bookRepository: BookRepository) {
     route("/borrowings") {
-        get("/all"){
-            val borrowings = borrowingRepository.getAll()
+        get{
+            val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+            val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
+            val term = call.request.queryParameters["term"]
 
-            call.respond(borrowings.map { borrowing ->
-                BorrowingHttpResponse(
-                    borrowingId = borrowing.id.value,
-                    isbn = borrowing.isbn.value,
-                    memberId = borrowing.memberId.value,
-                    createdOn = borrowing.createdOn.value.toString(),
-                    actualReturnTime = borrowing.actualReturnTime?.value?.toString() ?: "none",
-                    specifiedReturnTime = borrowing.specifiedReturnTime.toString()
+            val pageable = Pageable(
+                page = page,
+                pageSize = size
+            )
 
+            val borrowingPage = borrowingRepository.find(pageable = pageable)
+            val borrowingResponse = borrowingPage.elements.map {borrowing -> BorrowingHttpResponse(
+                borrowingId = borrowing.id.value,
+                specifiedReturnTime = borrowing.specifiedReturnTime.value.toString(),
+                memberId = borrowing.memberId.value,
+                isbn = borrowing.isbn.value
+
+            )
+            }
+
+            call.respond(
+                Page(
+                    page = borrowingPage.page,
+                    pageSize = borrowingPage.pageSize,
+                    elements = borrowingResponse,
+                    totalElements = borrowingPage.totalElements,
+                    totalPages = borrowingPage.totalPages
                 )
-            })
-        }
+            )
+            }
+
         post{
             val borrowing = call.receive<BorrowingHttpResponse>()
             val borrowingService = BorrowingService( bookRepository, memberRepository, borrowingRepository)
@@ -57,6 +76,6 @@ fun Route.borrowingRoutes(borrowingRepository: BorrowingRepository, memberReposi
             borrowingService.returnBook(borrowingId = BorrowingId(borrowingIdParam))
             call.respond(HttpStatusCode.OK)
         }
-    }
+    }}
 
-}
+

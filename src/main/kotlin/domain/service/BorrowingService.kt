@@ -55,7 +55,6 @@ class BorrowingService(
         )
 
         borrowingRepository.save(borrowing)
-
         return borrowing
     }
 

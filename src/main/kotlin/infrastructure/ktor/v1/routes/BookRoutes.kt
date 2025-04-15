@@ -1,5 +1,6 @@
 package infrastructure.ktor.v1.routes
 
+import kotlin.math.ceil
 
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -13,23 +14,42 @@ import domain.aggregate.book.valueobject.Stock
 import domain.aggregate.book.valueobject.Title
 import domain.aggregate.book.entity.Book
 import domain.aggregate.book.valueobject.Author
+import domain.repository.valueobject.*
 
 
 fun Route.bookRoutes(bookRepository: BookRepository) {
     route("/books") {
-        get("/all") {
+        get {
 
+            val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+            val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
+            val term = call.request.queryParameters["term"]
 
-            val books = bookRepository.getAll()
+            val pageable = Pageable(
+                page = page,
+                pageSize = size
+            )
 
-            call.respond(books.map { book ->
+            val bookPage = bookRepository.find(pageable)
+
+            val bookResponses = bookPage.elements.map { book ->
                 BookHttpResponse(
                     isbn = book.isbn.value,
                     title = book.title.value,
                     author = book.author.value,
                     stock = book.stock.value
                 )
-            })
+            }
+
+            call.respond(
+                Page(
+                    page = bookPage.page,
+                    pageSize = bookPage.pageSize,
+                    elements = bookResponses,
+                    totalElements = bookPage.totalElements,
+                    totalPages = bookPage.totalPages
+                )
+            )
         }
         get("/{isbn}") {
             val isbnParam = call.parameters["isbn"]
