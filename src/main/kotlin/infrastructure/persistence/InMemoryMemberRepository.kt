@@ -3,6 +3,9 @@ package infrastructure.persistence
 import domain.repository.MemberRepository
 import domain.aggregate.member.entity.Member
 import domain.aggregate.member.valueobject.MemberId
+import domain.repository.valueobject.Page
+import domain.repository.valueobject.Pageable
+import kotlin.math.ceil
 
 class InMemoryMemberRepository : MemberRepository {
     private val members = mutableMapOf<MemberId, Member>()
@@ -18,5 +21,35 @@ class InMemoryMemberRepository : MemberRepository {
     fun preload(vararg memberList: Member) {
         memberList.forEach { save(it) }
     }
-    override fun getAll(): List<Member> = members.values.toList()
+
+    override fun find(pageable: Pageable): Page<Member> {
+        val memberList = members.values.toList()
+
+        val totalElements = memberList.size
+        val totalPages = ceil(totalElements / pageable.pageSize.toFloat()).toInt()
+
+        val fromIndex = (pageable.page - 1) * pageable.pageSize
+        if (fromIndex >= totalElements) {
+            return Page(
+                page = pageable.page,
+                pageSize = pageable.pageSize,
+                elements = emptyList(),
+                totalElements = totalElements,
+                totalPages = totalPages
+            )
+        }
+
+        val toIndex = minOf(fromIndex + pageable.pageSize, totalElements)
+        val paginatedMember = memberList.subList(fromIndex, toIndex)
+
+        return Page(
+            page = pageable.page,
+            pageSize = pageable.pageSize,
+            elements = paginatedMember,
+            totalElements = totalElements,
+            totalPages = totalPages
+        )
+
+    }
+//    override fun getAll(): List<Member> = members.values.toList()
 }
