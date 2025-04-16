@@ -14,10 +14,13 @@ import domain.aggregate.book.valueobject.Stock
 import domain.aggregate.book.valueobject.Title
 import domain.aggregate.book.entity.Book
 import domain.aggregate.book.valueobject.Author
+import domain.repository.TransactionManager
 import domain.repository.valueobject.*
+import domain.service.BookService
 
 
-fun Route.bookRoutes(bookRepository: BookRepository) {
+fun Route.bookRoutes(bookRepository: BookRepository,
+                     transactionManager: TransactionManager) {
     route("/books") {
         get {
 
@@ -79,14 +82,11 @@ fun Route.bookRoutes(bookRepository: BookRepository) {
         post {
             try {
                 val book = call.receive<BookHttpResponse>()
-                bookRepository.save(
-                    Book(
-                        isbn = ISBN(book.isbn),
-                        author = Author(book.author),
-                        title = Title(book.title),
-                        stock = Stock(book.stock)
-                    )
-                )
+                val bookService = BookService(bookRepository, transactionManager)
+                bookService.addBook(isbn = ISBN(book.isbn),
+                    title = Title(book.title),
+                    author = Author(book.author),
+                    stock = Stock(book.stock))
 
                 call.respond(HttpStatusCode.Created, book)
             } catch (ex: IllegalArgumentException) {HttpStatusCode.BadRequest}

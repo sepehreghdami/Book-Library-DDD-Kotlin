@@ -1,9 +1,8 @@
-package infrastructure.persistence
+package infrastructure.`persistence(InMemory)`
 import domain.repository.BorrowingRepository
 import domain.aggregate.borrowing.entity.Borrowing
 import domain.aggregate.book.valueobject.ISBN
 import domain.aggregate.borrowing.valueobject.BorrowingId
-import domain.aggregate.member.entity.Member
 import domain.aggregate.member.valueobject.MemberId
 import domain.repository.valueobject.Page
 import domain.repository.valueobject.Pageable

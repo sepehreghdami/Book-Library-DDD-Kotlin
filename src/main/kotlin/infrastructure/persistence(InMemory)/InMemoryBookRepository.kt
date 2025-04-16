@@ -1,4 +1,4 @@
-package infrastructure.persistence
+package infrastructure.`persistence(InMemory)`
 
 import domain.repository.BookRepository
 import domain.aggregate.book.valueobject.ISBN

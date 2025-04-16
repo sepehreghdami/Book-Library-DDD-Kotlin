@@ -1,4 +1,4 @@
-package infrastructure.persistence
+package infrastructure.`persistence(InMemory)`
 
 import domain.repository.MemberRepository
 import domain.aggregate.member.entity.Member

@@ -9,16 +9,25 @@ import infrastructure.ktor.v1.routes.*
 import domain.repository.*
 
 import domain.repository.BorrowingRepository
-import infrastructure.persistence.InMemoryBookRepository
-import infrastructure.persistence.InMemoryMemberRepository
-import infrastructure.persistence.InMemoryBorrowingRepository
-
+import infrastructure.persistence.dao.ExposedBookRepository
+import infrastructure.`persistence(InMemory)`.InMemoryMemberRepository
+import infrastructure.`persistence(InMemory)`.InMemoryBorrowingRepository
+import infrastructure.persistence.DatabaseFactory
+import infrastructure.persistence.dao.ExposedTransactionManager
+import infrastructure.persistence.tbl.BooksTable
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.SchemaUtils
 fun Application.module() {
     install(ContentNegotiation) {
         json()
     }
+    DatabaseFactory.init()
 
-    val bookRepository: BookRepository = InMemoryBookRepository()
+    transaction {
+        SchemaUtils.create(BooksTable)
+    }
+    val transactionManager: TransactionManager = ExposedTransactionManager()
+    val bookRepository: BookRepository = ExposedBookRepository()
     val memberRepository: MemberRepository = InMemoryMemberRepository()
     val borrowingRepository: BorrowingRepository = InMemoryBorrowingRepository()
 
@@ -27,9 +36,9 @@ fun Application.module() {
             call.respondText("Hello, world!")
         }
         route("/v1/library") {
-            bookRoutes(bookRepository)
+            bookRoutes(bookRepository, transactionManager)
             memberRoutes(memberRepository)
-            borrowingRoutes(borrowingRepository, memberRepository, bookRepository)
+            borrowingRoutes(borrowingRepository, memberRepository, bookRepository, transactionManager)
         }
     }
 

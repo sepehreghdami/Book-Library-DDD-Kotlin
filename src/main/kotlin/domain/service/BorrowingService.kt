@@ -10,14 +10,26 @@ import java.time.Instant
 import domain.aggregate.borrowing.valueobject.BorrowDate
 import domain.aggregate.borrowing.valueobject.BorrowingId
 import domain.aggregate.member.valueobject.MemberId
+import domain.repository.TransactionManager
 import java.util.UUID
 
 class BorrowingService(
+    private val transactionManager: TransactionManager,
     private val bookRepository: BookRepository,
     private val memberRepository: MemberRepository,
     private val borrowingRepository: BorrowingRepository
 ) {
-
+//    fun addBook(...,isbn: ISBN){
+//        transactionManager.performInTransaction {
+//           val book= bookRepository.get(isbn)
+//            if (book==null){
+//                bookRepository.save(newBook)
+//            }
+//            else{
+//                throw Exception
+//            }
+//        }
+//    }
     fun borrowBook(
         memberId: MemberId,
         isbn: ISBN,
