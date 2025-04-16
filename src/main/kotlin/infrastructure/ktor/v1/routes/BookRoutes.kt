@@ -1,7 +1,5 @@
 package infrastructure.ktor.v1.routes
 
-import kotlin.math.ceil
-
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.request.*
@@ -12,15 +10,16 @@ import domain.repository.BookRepository
 import domain.aggregate.book.valueobject.ISBN
 import domain.aggregate.book.valueobject.Stock
 import domain.aggregate.book.valueobject.Title
-import domain.aggregate.book.entity.Book
 import domain.aggregate.book.valueobject.Author
+import domain.crosscutting.Page
+import domain.crosscutting.Pageable
 import domain.repository.TransactionManager
-import domain.repository.valueobject.*
 import domain.service.BookService
 
 
 fun Route.bookRoutes(bookRepository: BookRepository,
                      transactionManager: TransactionManager) {
+    val bookService = BookService(bookRepository, transactionManager)
     route("/books") {
         get {
 
@@ -28,12 +27,7 @@ fun Route.bookRoutes(bookRepository: BookRepository,
             val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
             val term = call.request.queryParameters["term"]
 
-            val pageable = Pageable(
-                page = page,
-                pageSize = size
-            )
-
-            val bookPage = bookRepository.find(pageable)
+            val bookPage = bookService.findBooks(page, size)
 
             val bookResponses = bookPage.elements.map { book ->
                 BookHttpResponse(
@@ -60,12 +54,7 @@ fun Route.bookRoutes(bookRepository: BookRepository,
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ISBN must be provided"))
                 return@get
             }
-            val book = bookRepository.get(isbn = ISBN(isbnParam))
-            if (isbnParam.isNullOrBlank()) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ISBN must be provided"))
-                return@get
-            }
-
+            val book = bookService.getBook(isbn = ISBN(isbnParam))
             if (book == null) {
                 call.respond(HttpStatusCode.NotFound, mapOf("error" to "Book not found"))
             } else {
@@ -82,7 +71,6 @@ fun Route.bookRoutes(bookRepository: BookRepository,
         post {
             try {
                 val book = call.receive<BookHttpResponse>()
-                val bookService = BookService(bookRepository, transactionManager)
                 bookService.addBook(isbn = ISBN(book.isbn),
                     title = Title(book.title),
                     author = Author(book.author),

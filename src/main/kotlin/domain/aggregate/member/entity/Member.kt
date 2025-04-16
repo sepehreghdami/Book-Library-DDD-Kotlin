@@ -16,11 +16,12 @@ class Member private constructor() {
 
     companion object{
         fun makeNew(
+            id:MemberId,
             name:MemberName,
             maxBorrowsAllowed: MaxBorrowsAllowed
         ): Member {
             return Member().apply {
-                this.id = MemberId(UUID.randomUUID().toString())
+                this.id = id
                 this.name = name
                 this.maxBorrowsAllowed = maxBorrowsAllowed
             }

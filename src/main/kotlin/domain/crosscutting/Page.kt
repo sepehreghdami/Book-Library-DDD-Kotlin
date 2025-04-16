@@ -1,4 +1,4 @@
-package domain.repository.valueobject
+package domain.crosscutting
 import kotlinx.serialization.Serializable
 
 

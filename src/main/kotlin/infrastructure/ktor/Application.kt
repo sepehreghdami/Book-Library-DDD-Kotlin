@@ -10,9 +10,12 @@ import domain.repository.*
 
 import domain.repository.BorrowingRepository
 import infrastructure.persistence.dao.ExposedBookRepository
-import infrastructure.`persistence(InMemory)`.InMemoryMemberRepository
-import infrastructure.`persistence(InMemory)`.InMemoryBorrowingRepository
+
+import infrastructure.persistence.BorrowingsTable
 import infrastructure.persistence.DatabaseFactory
+import infrastructure.persistence.MembersTable
+import infrastructure.persistence.dao.ExposedBorrowingRepository
+import infrastructure.persistence.dao.ExposedMemberRepository
 import infrastructure.persistence.dao.ExposedTransactionManager
 import infrastructure.persistence.tbl.BooksTable
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -24,12 +27,13 @@ fun Application.module() {
     DatabaseFactory.init()
 
     transaction {
-        SchemaUtils.create(BooksTable)
+        SchemaUtils.create(BooksTable, MembersTable, BorrowingsTable)
+
     }
     val transactionManager: TransactionManager = ExposedTransactionManager()
     val bookRepository: BookRepository = ExposedBookRepository()
-    val memberRepository: MemberRepository = InMemoryMemberRepository()
-    val borrowingRepository: BorrowingRepository = InMemoryBorrowingRepository()
+    val memberRepository: MemberRepository = ExposedMemberRepository()
+    val borrowingRepository: BorrowingRepository = ExposedBorrowingRepository()
 
     routing {
         get("/") {
@@ -37,7 +41,7 @@ fun Application.module() {
         }
         route("/v1/library") {
             bookRoutes(bookRepository, transactionManager)
-            memberRoutes(memberRepository)
+            memberRoutes(memberRepository, transactionManager)
             borrowingRoutes(borrowingRepository, memberRepository, bookRepository, transactionManager)
         }
     }

@@ -3,11 +3,10 @@ package infrastructure.persistence.dao
 import domain.aggregate.book.entity.Book
 import domain.aggregate.book.valueobject.ISBN
 import domain.repository.BookRepository
-import domain.repository.valueobject.Page
-import domain.repository.valueobject.Pageable
+import domain.crosscutting.Page
+import domain.crosscutting.Pageable
 import infrastructure.persistence.tbl.BooksTable
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.math.ceil
 
 
@@ -19,7 +18,7 @@ class ExposedBookRepository : BookRepository {
         }.map { BooksTable.toBook(it) }.singleOrNull()
     }
 
-    override fun find(pageable: Pageable): Page<Book>  {
+    override fun find(pageable: Pageable): Page<Book> {
         val query = BooksTable.selectAll()
 
         val totalElements = query.count().toInt()

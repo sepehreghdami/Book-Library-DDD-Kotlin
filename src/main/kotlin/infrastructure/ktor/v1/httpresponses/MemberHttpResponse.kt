@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MemberHttpResponse(
-    val id: String? =  null,
+    val id: String,
     val name: String,
     val maxBorrowsAllowed: Int
 )
