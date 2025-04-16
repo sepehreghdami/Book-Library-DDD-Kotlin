@@ -9,27 +9,40 @@ import infrastructure.ktor.v1.routes.*
 import domain.repository.*
 
 import domain.repository.BorrowingRepository
-import infrastructure.persistence.InMemoryBookRepository
-import infrastructure.persistence.InMemoryMemberRepository
-import infrastructure.persistence.InMemoryBorrowingRepository
+import infrastructure.persistence.dao.ExposedBookRepository
 
+import infrastructure.persistence.BorrowingsTable
+import infrastructure.persistence.DatabaseFactory
+import infrastructure.persistence.MembersTable
+import infrastructure.persistence.dao.ExposedBorrowingRepository
+import infrastructure.persistence.dao.ExposedMemberRepository
+import infrastructure.persistence.dao.ExposedTransactionManager
+import infrastructure.persistence.tbl.BooksTable
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.SchemaUtils
 fun Application.module() {
     install(ContentNegotiation) {
         json()
     }
+    DatabaseFactory.init()
 
-    val bookRepository: BookRepository = InMemoryBookRepository()
-    val memberRepository: MemberRepository = InMemoryMemberRepository()
-    val borrowingRepository: BorrowingRepository = InMemoryBorrowingRepository()
+    transaction {
+        SchemaUtils.create(BooksTable, MembersTable, BorrowingsTable)
+
+    }
+    val transactionManager: TransactionManager = ExposedTransactionManager()
+    val bookRepository: BookRepository = ExposedBookRepository()
+    val memberRepository: MemberRepository = ExposedMemberRepository()
+    val borrowingRepository: BorrowingRepository = ExposedBorrowingRepository()
 
     routing {
         get("/") {
             call.respondText("Hello, world!")
         }
         route("/v1/library") {
-            bookRoutes(bookRepository)
-            memberRoutes(memberRepository)
-            borrowingRoutes(borrowingRepository, memberRepository, bookRepository)
+            bookRoutes(bookRepository, transactionManager)
+            memberRoutes(memberRepository, transactionManager)
+            borrowingRoutes(borrowingRepository, memberRepository, bookRepository, transactionManager)
         }
     }
 

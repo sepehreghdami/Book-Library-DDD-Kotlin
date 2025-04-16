@@ -1,4 +1,4 @@
-package domain.repository.valueobject
+package domain.crosscutting
 
 
 data class Pageable(val page: Int,

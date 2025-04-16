@@ -3,10 +3,13 @@ package infrastructure.ktor.v1.routes
 
 import domain.aggregate.member.entity.Member
 import domain.aggregate.member.valueobject.MaxBorrowsAllowed
+import domain.aggregate.member.valueobject.MemberId
 import domain.aggregate.member.valueobject.MemberName
 import domain.repository.MemberRepository
-import domain.repository.valueobject.Page
-import domain.repository.valueobject.Pageable
+import domain.crosscutting.Page
+import domain.crosscutting.Pageable
+import domain.repository.TransactionManager
+import domain.service.MemberService
 import infrastructure.ktor.v1.httpresponses.MemberHttpResponse
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -15,19 +18,17 @@ import io.ktor.server.routing.*
 import io.ktor.http.*
 
 
-fun Route.memberRoutes(memberRepository: MemberRepository) {
+fun Route.memberRoutes(memberRepository: MemberRepository,
+                       transactionManager: TransactionManager) {
     route("/members"){
+        val memberService = MemberService(memberRepository, transactionManager)
         get {
             val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
             val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
             val term = call.request.queryParameters["term"]
+//
+            val memberPage = memberService.findMembers(page, size)
 
-            val pageable = Pageable(
-                page = page,
-                pageSize = size
-            )
-
-            val memberPage = memberRepository.find(pageable = pageable)
             val memberResponse = memberPage.elements.map {member -> MemberHttpResponse(
                 id = member.id.value,
                 name = member.name.value,
@@ -44,12 +45,26 @@ fun Route.memberRoutes(memberRepository: MemberRepository) {
                 )
             )
         }
+        get("/{id}") {
+            val idParam = call.parameters["id"] ?: "1234"
+            val member = memberService.getMember(memberId = MemberId(idParam))
+            if (member == null){
+                call.respond(HttpStatusCode.BadRequest, "Member with provided ID does not exist")
+            } else {
+                call.respond(MemberHttpResponse(
+                    id = member.id.value,
+                    name = member.name.value,
+                    maxBorrowsAllowed = member.maxBorrowsAllowed.value
+                ))
+            }
+
+
+        }
         post {
             val member = call.receive<MemberHttpResponse>()
-            memberRepository.save(
-                Member.makeNew(name = MemberName(member.name),
-                    maxBorrowsAllowed = MaxBorrowsAllowed(member.maxBorrowsAllowed)
-                )
+            memberService.addMember(MemberId(member.id),
+                MemberName(member.name),
+                MaxBorrowsAllowed(member.maxBorrowsAllowed)
             )
             call.respond(HttpStatusCode.Created,member)
         }
